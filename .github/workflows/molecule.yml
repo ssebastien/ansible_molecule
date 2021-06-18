@@ -1,0 +1,23 @@
+---
+name:                      "Molecule"
+on:
+  push:
+    branches:
+      - develop
+  pull_request:
+    types:
+      - main
+      - master
+  workflow_dispatch:
+
+jobs:
+  lint:
+    name:                      "Ansible: Lint"
+    runs-on:                   ubuntu-latest
+    steps:
+      - name:                  "Init: Run checkout@v2"
+        uses:                  actions/checkout@v2
+      - name:                  "Ansible: Lint role"
+        uses:                  ansible/ansible-lint-action@master
+        with:
+          targets:             "./"
