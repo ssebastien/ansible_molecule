@@ -6,4 +6,3 @@
     mode:       "0755"
   loop:
     - /tmp/toto
-    
