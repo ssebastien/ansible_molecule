@@ -25,49 +25,43 @@ jobs:
         uses: robertdebock/molecule-action@2.6.16
         with:
           command: lint
-  test:
+  molecule:
+    name:                      "Molecule: Test"
+    runs-on:                   ubuntu-latest
+    strategy:
+      fail-fast:               false
+      matrix:
+        images:
+          - "centos7"
+          - "centos8"
+          - "debian9"
+          - "debian10"
+          - "debian11"
+          - "ubuntu1804"
+          - "ubuntu2004"
+    container:
+        image:                 ghcr.io/pandemonium1986/alpine313:nightly
+        volumes:
+          - /var/run/docker.sock:/var/run/docker.sock
+          - ${{ github.workspace }}:/opt/workspace/${{ github.repository }}
+        env:
+          ANSIBLE_FORCE_COLOR: "1"
+          PY_COLORS:           "1"
+          DKR_IMAGE:  ${{ matrix.images }}
+        options:               >-
+          --workdir /opt/workspace/${{ github.repository }}
     needs:
       - lint
-    runs-on: ubuntu-20.04
-    strategy:
-      fail-fast: false
-      matrix:
-        config:
-          - image: "alpine"
-            tag: "latest"
-          - image: "amazonlinux"
-            tag: "latest"
-          - image: "centos"
-            tag: "7"
-          - image: "centos"
-            tag: "latest"
-          - image: "debian"
-            tag: "latest"
-          - image: "debian"
-            tag: "bullseye"
-          - image: "fedora"
-            tag: "33"
-          - image: "fedora"
-            tag: "latest"
-          - image: "fedora"
-            tag: "rawhide"
-          - image: "opensuse"
-            tag: "latest"
-          - image: "ubuntu"
-            tag: "latest"
-          - image: "ubuntu"
-            tag: "bionic"
     steps:
-      - name: checkout
-        uses: actions/checkout@v2
-        with:
-          path: "${{ github.repository }}"
-      - name: disable apparmor for mysql
-        run: sudo ln -s /etc/apparmor.d/usr.sbin.mysqld /etc/apparmor.d/disable/
-      - name: parse apparmor for mysql
-        run: sudo apparmor_parser -R /etc/apparmor.d/usr.sbin.mysqld
-      - name: molecule
-        uses: robertdebock/molecule-action@2.6.16
-        with:
-          image: ${{ matrix.config.image }}
-          tag: ${{ matrix.config.tag }}
+      - name:                  "Init: Run checkout@v2"
+        uses:                  actions/checkout@v2
+      - name:                  "Molecule: Create"
+        run:                   molecule create
+      - name:                  "Molecule: Converge"
+        run:                   molecule converge
+      - name:                  "Molecule: Idempotence"
+        run:                   molecule idempotence
+      - name:                  "Molecule: Verify"
+        run:                   molecule verify
+      - name:                  "Molecule: Destroy"
+        run:                   molecule destroy
