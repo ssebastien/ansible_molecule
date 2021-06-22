@@ -6,3 +6,9 @@
     mode:       "0755"
   loop:
     - /tmp/toto
+
+- name: install curl
+  yum:
+    name: curl
+    state: present
+    update_cache: yes
