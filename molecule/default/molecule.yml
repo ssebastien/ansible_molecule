@@ -13,14 +13,27 @@ lint: |
 driver:
   name: docker
 platforms:
-  - name: "users-${image:-fedora}-${tag:-latest}${TOX_ENVNAME}"
-    image: "${namespace:-robertdebock}/${image:-fedora}:${tag:-latest}"
-    command: /sbin/init
+  - name:                    molecule-${DKR_IMAGE:-debian10}
+    hostname:                ${DKR_IMAGE:-debian10}
+    image:                   ghcr.io/pandemonium1986/${DKR_IMAGE:-debian10}:nightly
+    pull:                    true
+    pre_build_image:         true
+    tty:                     true
+    override_command:        false
     volumes:
       - /sys/fs/cgroup:/sys/fs/cgroup:ro
-    privileged: yes
-    pre_build_image: yes
+    privileged:              true
 provisioner:
-  name: ansible
+  name:                      ansible
+  lint:                      |
+    set -e
+    ansible-lint
+  config_options:
+    defaults:
+      stdout_callback:       yaml
+      bin_ansible_callbacks: true
+scenario:
+  name:                      default
 verifier:
-  name: ansible
+  name:                      ansible
+  enabled:                   true
